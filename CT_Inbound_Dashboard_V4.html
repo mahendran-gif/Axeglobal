@@ -10,6 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
 :root{--bg:#050d1a;--bg2:#071220;--bg3:#0a1a2e;--bg4:#0d2040;--cyan:#00f5ff;--cyan2:#00b4d8;--green:#00ff88;--orange:#ff6b35;--purple:#b44fff;--yellow:#ffd60a;--red:#ff3860;--dim:#1a3050;--text:#c8dff0;--text-dim:#4a7090;--mono:'JetBrains Mono','Share Tech Mono',monospace;--display:'Orbitron',monospace}
@@ -238,7 +239,8 @@ function doLogin(){
 function doLogout(){
   sessionStorage.removeItem('ctAuthUser');
   currentUser=null;
-  if(firebaseDB)firebaseDB.ref('ct_dashboard/data').off();
+  if(firebaseDB){ firebaseDB.ref('ct_dashboard/data').off(); }
+  fbListenerActive=false;
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
   document.getElementById('loginScreen').classList.remove('hidden');
@@ -281,42 +283,27 @@ const FIREBASE_CONFIG = {
 };
 
 let firebaseDB = null;
+let fbListenerActive = false;
 
 function initFirebaseSync(){
-  // Guard: Firebase SDK must be loaded
   if(typeof firebase==='undefined'){
     showFbStatus('❌ Firebase SDK failed to load — check network','var(--red)',true);
     return;
   }
   try{
-    // Init app only once (compat SDK pattern)
     if(!firebase.apps.length){
       firebase.initializeApp(FIREBASE_CONFIG);
     }
     firebaseDB = firebase.database();
     showFbStatus('🔗 Connecting…','var(--cyan2)',false);
 
-    // Value listener — success callback
-    firebaseDB.ref('ct_dashboard/data').on('value', function(snapshot){
-      var data = snapshot.val();
-      if(data && Array.isArray(data) && data.length > 0){
-        RAW = data;
-        filtered = [...RAW];
-        rebuildFilters();
-        resetF();
-        showFbStatus('🔄 Live · '+data.length+' records','var(--green)',false);
-      } else {
-        showFbStatus('☁ Connected · Import Excel to push data','var(--cyan2)',false);
-      }
-    }, function(err){
-      // Firebase .on() error callback (permission denied, database not enabled, etc.)
-      console.error('Firebase listener error:',err);
-      if(err.code==='PERMISSION_DENIED'){
-        showFbStatus('❌ DB rules deny access — set test mode in Firebase Console','var(--red)',true);
-      } else {
-        showFbStatus('❌ '+err.message,'var(--red)',true);
-      }
-    });
+    // Sign in anonymously so Firebase auth rules are satisfied
+    firebase.auth().signInAnonymously()
+      .then(function(){ listenToData(); })
+      .catch(function(authErr){
+        console.warn('Anonymous auth failed, trying unauthenticated:', authErr);
+        listenToData(); // still try — works if DB rules are open
+      });
 
   }catch(e){
     console.error('Firebase init error:',e);
@@ -330,15 +317,55 @@ function initFirebaseSync(){
   }
 }
 
+function listenToData(){
+  // Prevent duplicate listeners
+  if(fbListenerActive) return;
+  fbListenerActive = true;
+
+  firebaseDB.ref('ct_dashboard/data').on('value', function(snapshot){
+    var data = snapshot.val();
+    if(data && Array.isArray(data) && data.length > 0){
+      RAW = data;
+      filtered = [...RAW];
+      rebuildFilters();
+      resetF();
+      showFbStatus('🔄 Live · '+data.length+' records synced','var(--green)',false);
+    } else {
+      showFbStatus('☁ Connected · Import Excel to push data to all users','var(--cyan2)',false);
+    }
+  }, function(err){
+    console.error('Firebase listener error:',err);
+    fbListenerActive = false;
+    if(err.code==='PERMISSION_DENIED'){
+      showFbStatus('❌ Access denied — in Firebase Console go to Realtime Database → Rules and set read/write to true','var(--red)',true);
+    } else {
+      showFbStatus('❌ '+err.message,'var(--red)',true);
+    }
+  });
+}
+
 function saveToFirebase(data){
   if(!firebaseDB){
     showFbStatus('⚠ Not connected to Firebase — data saved locally only','#ffd60a',true);
     return;
   }
+  // Warn if payload looks large (> ~5 MB as JSON)
+  var approxSize = JSON.stringify(data).length;
+  if(approxSize > 5000000){
+    showFbStatus('⚠ Data is large ('+Math.round(approxSize/1024)+'KB) — upload may be slow','#ffd60a',false);
+  }
   showFbStatus('☁ Uploading '+data.length+' records…','var(--cyan2)',false);
-  firebaseDB.ref('ct_dashboard/data').set(data)
-    .then(function(){showFbStatus('✅ '+data.length+' records live for all users','var(--green)',false);})
-    .catch(function(e){showFbStatus('❌ Upload failed: '+e.message,'var(--red)',true);});
+  var payload = {
+    data: data,
+    meta: { updatedBy: currentUser||'unknown', updatedAt: new Date().toISOString(), count: data.length }
+  };
+  firebaseDB.ref('ct_dashboard').set(payload)
+    .then(function(){
+      showFbStatus('✅ '+data.length+' records saved — all users will see this now','var(--green)',false);
+    })
+    .catch(function(e){
+      showFbStatus('❌ Upload failed: '+e.message,'var(--red)',true);
+    });
 }
 
 function showFbStatus(msg, color, persistent){
