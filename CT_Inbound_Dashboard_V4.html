@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CT Inbound Dashboard · FEB 2026</title>
+<title>CT Inbound Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -141,13 +141,13 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color 
     <div class="hdr-clock" id="hdrClock">—</div>
   </div>
   <div class="header-right">
-    <div class="live-badge"><span class="live-dot"></span> LIVE DATA</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
+      <div class="live-badge"><span class="live-dot"></span> LIVE DATA</div>
       <div class="user-badge"><span class="user-dot"></span> <span id="ctUserName">—</span></div>
       <button class="logout-btn" onclick="doLogout()">↩ SIGN OUT</button>
+      <button class="import-btn" onclick="document.getElementById('fileInput').click()"><span class="ico">📂</span> IMPORT FILE DATA</button>
     </div>
     <div class="fb-status" id="fbStatus"></div>
-    <button class="import-btn" onclick="document.getElementById('fileInput').click()"><span class="ico">📂</span> IMPORT FILE DATA</button>
     <div class="header-meta">Week <span id="hdrWkRange">5 — Week 18</span> &nbsp;|&nbsp; <span id="hdrCount">714</span> shipments tracked</div>
   </div>
 </div>
@@ -658,10 +658,10 @@ function tickClock(){
   const now=new Date();
   const d=now.toLocaleString('en-GB',{timeZone:tz,day:'2-digit',month:'short',year:'numeric'});
   const t=now.toLocaleString('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-  const mon=now.toLocaleString('en-GB',{timeZone:tz,month:'short',year:'numeric'}).toUpperCase();
+  const fullDate=now.toLocaleString('en-GB',{timeZone:tz,day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
   const el=$('hdrClock');const ed=$('hdrDate');
   if(el)el.textContent=t+' ● BE';
-  if(ed)ed.textContent=mon;}
+  if(ed)ed.textContent=fullDate;}
 setInterval(tickClock,1000);tickClock();
 updateAll();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
