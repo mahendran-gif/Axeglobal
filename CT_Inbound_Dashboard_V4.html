@@ -151,9 +151,9 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color 
 </div>
 
 <div class="controls">
-  <div class="ctrl-group"><div class="ctrl-lbl">Year</div><select id="fYear" onchange="applyF()"><option value="">All Years</option><option value="2026">2026</option></select></div>
-  <div class="ctrl-group"><div class="ctrl-lbl">Month</div><select id="fMonth" onchange="applyF()"><option value="">All Months</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option></select></div>
-  <div class="ctrl-group"><div class="ctrl-lbl">Week</div><select id="fWeek" onchange="applyF()"><option value="">All Weeks</option><option value="5">Wk 5</option><option value="6">Wk 6</option><option value="7">Wk 7</option><option value="8">Wk 8</option><option value="9">Wk 9</option><option value="10">Wk 10</option><option value="11">Wk 11</option><option value="12">Wk 12</option><option value="13">Wk 13</option><option value="14">Wk 14</option><option value="15">Wk 15</option><option value="16">Wk 16</option><option value="17">Wk 17</option><option value="18">Wk 18</option></select></div>
+  <div class="ctrl-group"><div class="ctrl-lbl">Year</div><select id="fYear" onchange="applyF()"><option value="">All Years</option></select></div>
+  <div class="ctrl-group"><div class="ctrl-lbl">Month</div><select id="fMonth" onchange="applyF()"><option value="">All Months</option></select></div>
+  <div class="ctrl-group"><div class="ctrl-lbl">Week</div><select id="fWeek" onchange="applyF()"><option value="">All Weeks</option></select></div>
   <div class="ctrl-group"><div class="ctrl-lbl">Warehouse</div><select id="fWH" onchange="applyF()"><option value="">All Warehouses</option><option value="Blauwhoef">Blauwhoef</option><option value="Brasil - kaai 1054">Brasil - kaai 1054</option><option value="Cleaning - kaai 1054">Cleaning - kaai 1054</option><option value="Ecowell">Ecowell</option><option value="Hazop - kaai 1167">Hazop - kaai 1167</option><option value="Kalishoek - kaai 1793">Kalishoek - kaai 1793</option><option value="NNRC - KAAI 660">NNRC - KAAI 660</option><option value="Oudendijk - Kaai 1994">Oudendijk - Kaai 1994</option><option value="Schomhoeve">Schomhoeve</option><option value="Servaes - Kaai 650">Servaes - Kaai 650</option><option value="VMR - Kaai 1143">VMR - Kaai 1143</option><option value="VMR - Kaai 1147">VMR - Kaai 1147</option></select></div>
   <div class="ctrl-group"><div class="ctrl-lbl">Shipping Line</div><select id="fSL" onchange="applyF()"><option value="">All Lines</option><option value="ACL">ACL</option><option value="CMA CGM">CMA CGM</option><option value="COCSO">COCSO</option><option value="COSCO">COSCO</option><option value="COSCO - BULKUAL">COSCO - BULKUAL</option><option value="EVG">EVG</option><option value="HAPAG">HAPAG</option><option value="HMM">HMM</option><option value="HPG">HPG</option><option value="Hpg">Hpg</option><option value="ICL">ICL</option><option value="MAERSK">MAERSK</option><option value="MSC">MSC</option><option value="MSK">MSK</option><option value="ONE">ONE</option><option value="OOCL">OOCL</option><option value="SCI">SCI</option><option value="YNG">YNG</option><option value="ZIM">ZIM</option></select></div>
   <div class="ctrl-group"><div class="ctrl-lbl">Client</div><select id="fClient" onchange="applyF()"><option value="">All Clients</option><option value="ASCENSUS">ASCENSUS</option><option value="AXIA">AXIA</option><option value="Albemarle Packed">Albemarle Packed</option><option value="Ascensus ISO Tank">Ascensus ISO Tank</option><option value="BRASKEM PIB">BRASKEM PIB</option><option value="Boschmans Steinacher">Boschmans Steinacher</option><option value="Braskem">Braskem</option><option value="CARPENTER">CARPENTER</option><option value="CORTEVA CH">CORTEVA CH</option><option value="Chemours">Chemours</option><option value="Chevron">Chevron</option><option value="Continental">Continental</option><option value="Corteva FR">Corteva FR</option><option value="DL Chemicals">DL Chemicals</option><option value="Dasbach">Dasbach</option><option value="EDF">EDF</option><option value="Emvia">Emvia</option><option value="Esvama">Esvama</option><option value="Evonik">Evonik</option><option value="Fuji">Fuji</option><option value="HAKOTRANS">HAKOTRANS</option><option value="Haas">Haas</option><option value="Hanwha Total">Hanwha Total</option><option value="Italmatch">Italmatch</option><option value="K+N">K+N</option><option value="KarlGross">KarlGross</option><option value="Ketjen Packed">Ketjen Packed</option><option value="MFCI">MFCI</option><option value="Meraxis">Meraxis</option><option value="Nippon">Nippon</option><option value="Nissan JP">Nissan JP</option><option value="PRIME">PRIME</option><option value="Pure tech">Pure tech</option><option value="Sabic">Sabic</option><option value="Schomhoeve">Schomhoeve</option><option value="Sealogis">Sealogis</option><option value="Swiss Polymers">Swiss Polymers</option><option value="TEGRAL">TEGRAL</option><option value="TPL">TPL</option><option value="Taewoong">Taewoong</option><option value="Tricon">Tricon</option><option value="UPL">UPL</option></select></div>
@@ -418,11 +418,23 @@ $('fileInput').addEventListener('change',function(e){
   e.target.value='';
 });
 function toast(msg,clr){const t=$('toast');t.textContent=msg;t.style.borderColor=clr;t.style.color=clr;t.style.display='block';setTimeout(()=>t.style.display='none',4000)}
+function delayWeek(ds){
+  if(!ds)return null;
+  const d=new Date(ds+'T00:00:00');if(isNaN(d))return null;
+  const tmp=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=tmp.getUTCDay()||7;tmp.setUTCDate(tmp.getUTCDate()+4-day);
+  const ys=new Date(Date.UTC(tmp.getUTCFullYear(),0,1));
+  return Math.ceil(((tmp-ys)/86400000+1)/7);}
 function rebuildFilters(){
   const whs=[...new Set(RAW.map(r=>r.Warehouse).filter(Boolean))].sort();
   const cls=[...new Set(RAW.map(r=>r.Client).filter(Boolean))].sort();
   const sls=[...new Set(RAW.map(r=>r.ShippingLine).filter(Boolean))].sort();
-  const wks=[...new Set(RAW.map(r=>r.Week).filter(w=>w!=null))].sort((a,b)=>a-b);
+  const yrs=[...new Set(RAW.map(r=>r.Delay&&r.Delay.substring(0,4)).filter(Boolean))].sort();
+  const mos=[...new Set(RAW.map(r=>r.Delay&&r.Delay.substring(5,7)).filter(Boolean))].sort();
+  const wks=[...new Set(RAW.map(r=>delayWeek(r.Delay)).filter(w=>w!=null))].sort((a,b)=>a-b);
+  const MON=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  $('fYear').innerHTML='<option value="">All Years</option>'+yrs.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+  $('fMonth').innerHTML='<option value="">All Months</option>'+mos.map(m=>'<option value="'+m+'">'+(MON[parseInt(m)]||m)+'</option>').join('');
   $('fWH').innerHTML='<option value="">All Warehouses</option>'+whs.map(w=>'<option value="'+w+'">'+w+'</option>').join('');
   $('fClient').innerHTML='<option value="">All Clients</option>'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
   $('fSL').innerHTML='<option value="">All Lines</option>'+sls.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
@@ -434,8 +446,8 @@ function rebuildFilters(){
 function applyF(){
   const y=$('fYear').value,m=$('fMonth').value,w=$('fWeek').value,wh=$('fWH').value,sl=$('fSL').value,cl=$('fClient').value,st=$('fStatus').value,q=$('searchBar').value.toLowerCase().trim();
   filtered=RAW.filter(r=>{
-    if(y&&r.ETA&&!r.ETA.startsWith(y))return false;if(m&&r.ETA&&r.ETA.substring(5,7)!==m)return false;
-    if(w&&r.Week!==parseInt(w))return false;if(wh&&r.Warehouse!==wh)return false;if(sl&&r.ShippingLine!==sl)return false;
+    if(y&&r.Delay&&!r.Delay.startsWith(y))return false;if(m&&r.Delay&&r.Delay.substring(5,7)!==m)return false;
+    if(w&&delayWeek(r.Delay)!==parseInt(w))return false;if(wh&&r.Warehouse!==wh)return false;if(sl&&r.ShippingLine!==sl)return false;
     if(cl&&r.Client!==cl)return false;if(st&&r.Status!==st)return false;
     if(q){const h=(r.Fnr+' '+r.Vessel+' '+r.Client+' '+r.Warehouse+' '+r.ShippingLine+' '+r.ClientRef+' '+r.Remarks).toLowerCase();if(!h.includes(q))return false}return true});
   $('ctrlCount').textContent=filtered.length.toLocaleString()+' records';$('hdrCount').textContent=filtered.length.toLocaleString();updateAll()}
