@@ -112,7 +112,7 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color 
 .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.25);padding:5px 12px;border-radius:20px;font-size:10px;color:var(--cyan);font-family:var(--display);letter-spacing:1px}
 .user-badge .user-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
 .logout-btn{background:transparent;border:1px solid rgba(255,56,96,0.4);color:rgba(255,56,96,0.7);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer;letter-spacing:1px;transition:all 0.2s}.logout-btn:hover{border-color:var(--red);color:var(--red);background:rgba(255,56,96,0.1)}
-.fb-status{font-size:10px;color:var(--cyan2);letter-spacing:1px;transition:opacity 0.5s;min-height:14px;text-align:right}
+.fb-status{font-size:10px;color:var(--cyan2);letter-spacing:1px;transition:opacity 0.8s ease;min-height:14px;text-align:right;max-width:320px;word-break:break-word}
 </style>
 </head>
 <body>
@@ -279,50 +279,75 @@ const FIREBASE_CONFIG = {
 };
 
 let firebaseDB = null;
-let fbInitialized = false;
 
 function initFirebaseSync(){
-  if(FIREBASE_CONFIG.apiKey.includes('REPLACE')){
-    showFbStatus('⚠ Firebase not configured – local data only','#ffd60a');
+  // Guard: Firebase SDK must be loaded
+  if(typeof firebase==='undefined'){
+    showFbStatus('❌ Firebase SDK failed to load — check network','var(--red)',true);
     return;
   }
   try{
-    if(!fbInitialized){
+    // Init app only once (compat SDK pattern)
+    if(!firebase.apps.length){
       firebase.initializeApp(FIREBASE_CONFIG);
-      fbInitialized=true;
     }
-    firebaseDB=firebase.database();
-    showFbStatus('🔗 Connecting to Firebase…','var(--cyan2)');
-    firebaseDB.ref('ct_dashboard/data').on('value',function(snapshot){
-      const data=snapshot.val();
-      if(data&&Array.isArray(data)&&data.length>0){
-        RAW=data;
-        filtered=[...RAW];
+    firebaseDB = firebase.database();
+    showFbStatus('🔗 Connecting…','var(--cyan2)',false);
+
+    // Value listener — success callback
+    firebaseDB.ref('ct_dashboard/data').on('value', function(snapshot){
+      var data = snapshot.val();
+      if(data && Array.isArray(data) && data.length > 0){
+        RAW = data;
+        filtered = [...RAW];
         rebuildFilters();
         resetF();
-        showFbStatus('🔄 Live data synced ('+data.length+' records)','var(--green)');
-      }else{
-        showFbStatus('☁ Connected – no cloud data yet','var(--cyan2)');
+        showFbStatus('🔄 Live · '+data.length+' records','var(--green)',false);
+      } else {
+        showFbStatus('☁ Connected · Import Excel to push data','var(--cyan2)',false);
+      }
+    }, function(err){
+      // Firebase .on() error callback (permission denied, database not enabled, etc.)
+      console.error('Firebase listener error:',err);
+      if(err.code==='PERMISSION_DENIED'){
+        showFbStatus('❌ DB rules deny access — set test mode in Firebase Console','var(--red)',true);
+      } else {
+        showFbStatus('❌ '+err.message,'var(--red)',true);
       }
     });
+
   }catch(e){
-    console.error('Firebase error:',e);
-    showFbStatus('❌ Firebase error: '+e.message,'var(--red)');
+    console.error('Firebase init error:',e);
+    var hint = e.message;
+    if(/database|rtdb|URL/i.test(e.message)){
+      hint = 'Enable Realtime Database in Firebase Console → Build → Realtime Database';
+    } else if(/already.*exist|duplicate/i.test(e.message)){
+      hint = 'Firebase already initialized — refresh page';
+    }
+    showFbStatus('❌ '+hint,'var(--red)',true);
   }
 }
 
 function saveToFirebase(data){
-  if(!firebaseDB){return;}
-  showFbStatus('☁ Saving '+data.length+' records…','var(--cyan2)');
+  if(!firebaseDB){
+    showFbStatus('⚠ Not connected to Firebase — data saved locally only','#ffd60a',true);
+    return;
+  }
+  showFbStatus('☁ Uploading '+data.length+' records…','var(--cyan2)',false);
   firebaseDB.ref('ct_dashboard/data').set(data)
-    .then(function(){showFbStatus('✅ '+data.length+' records saved to cloud','var(--green)');})
-    .catch(function(e){showFbStatus('❌ Save failed: '+e.message,'var(--red)');});
+    .then(function(){showFbStatus('✅ '+data.length+' records live for all users','var(--green)',false);})
+    .catch(function(e){showFbStatus('❌ Upload failed: '+e.message,'var(--red)',true);});
 }
 
-function showFbStatus(msg,color){
-  var el=document.getElementById('fbStatus');
-  if(el){el.textContent=msg;el.style.color=color;el.style.opacity=1;
-    setTimeout(function(){el.style.opacity=0;},4000);}
+function showFbStatus(msg, color, persistent){
+  var el = document.getElementById('fbStatus');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color  = color || 'var(--cyan2)';
+  el.style.opacity = 1;
+  if(!persistent){
+    setTimeout(function(){ el.style.opacity = 0; }, 5000);
+  }
 }
 
 
