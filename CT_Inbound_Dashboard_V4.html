@@ -390,7 +390,7 @@ const B=v=>(!v||v==='-'||v==='')?'<span class="badge b-dash">—</span>':v.toUpp
 const SB=v=>v==='Completed'?'<span class="badge b-completed">COMPLETED</span>':'<span class="badge b-active">ACTIVE</span>';
 const P=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
 const E=s=>String(s).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
-const fmtD=d=>{if(!d)return'—';if(d.length===10)return d;return d.substring(0,10)};
+const fmtD=d=>{if(!d)return'—';const s=d.length>=10?d.substring(0,10):d;if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s.substring(8,10)+'-'+s.substring(5,7)+'-'+s.substring(0,4);return s};
 
 /* ===== IMPORT FILE ===== */
 $('fileInput').addEventListener('change',function(e){
