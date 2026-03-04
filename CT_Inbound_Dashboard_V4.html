@@ -484,7 +484,7 @@ function applyF(){
     if(dt&&(!r.Delay||r.Delay>dt))return false;
     if(q){const h=(r.Fnr+' '+r.Vessel+' '+r.Client+' '+r.Warehouse+' '+r.ShippingLine+' '+r.ClientRef+' '+r.Remarks).toLowerCase();if(!h.includes(q))return false}return true});
   $('ctrlCount').textContent=filtered.length.toLocaleString()+' records';$('hdrCount').textContent=filtered.length.toLocaleString();updateAll()}
-function resetF(){['fYear','fMonth','fWeek','fWH','fClient','fStatus'].forEach(id=>$(id).value='');$('searchBar').value='';$('fDateFrom').value='2026-01-01';$('fDateTo').value=todayISO();applyF()}
+function resetF(){['fYear','fMonth','fWeek','fWH','fClient','fStatus'].forEach(id=>$(id).value='');$('searchBar').value='';$('fDateFrom').value='2026-01-01';$('fDateTo').value='';applyF()}
 function setG(id,tid,pv){const c=2*Math.PI*36,o=c-(pv/100)*c;const e=$(id),t=$(tid);if(e)e.style.strokeDashoffset=o;if(t)t.innerHTML=Math.round(pv)+'<span class="gauge-sub">%</span>'}
 
 function updateAll(){
@@ -694,7 +694,7 @@ function tickClock(){
   if(el)el.textContent=t+' ● BE';
   if(ed)ed.textContent=fullDate;}
 setInterval(tickClock,1000);tickClock();
-$('fDateFrom').value='2026-01-01';$('fDateTo').value=todayISO();
+$('fDateFrom').value='2026-01-01';
 updateAll();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 </script>
