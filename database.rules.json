@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "ct_dashboard": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
