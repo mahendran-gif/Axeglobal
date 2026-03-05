@@ -116,6 +116,21 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color 
 .logout-btn{background:transparent;border:1px solid rgba(255,56,96,0.4);color:rgba(255,56,96,0.7);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer;letter-spacing:1px;transition:all 0.2s}.logout-btn:hover{border-color:var(--red);color:var(--red);background:rgba(255,56,96,0.1)}
 .fb-status{font-size:10px;color:var(--cyan2);letter-spacing:1px;transition:opacity 0.8s ease;min-height:14px;text-align:right;max-width:320px;word-break:break-word}
 .hdr-clock{font-size:11px;color:var(--cyan2);letter-spacing:2px;margin-top:4px;font-family:var(--mono)}
+
+/* ===== DAY / NIGHT MODE ===== */
+body{transition:background-color 0.35s,color 0.35s}
+.panel,.kpi,.gauge-card,.controls,select,thead th,tbody td,.modal,.modal-filters,.tooltip-popup,.import-toast,.login-box{transition:background-color 0.35s,border-color 0.35s,color 0.35s}
+body.day{--bg:#f0f5fa;--bg2:#e4eef6;--bg3:#d6e6f2;--bg4:#c8dcec;--cyan:#006fa3;--cyan2:#0090bf;--green:#007a38;--orange:#c84000;--purple:#6c1fbb;--yellow:#927000;--red:#c4002a;--dim:#a8c8e0;--text:#0e1e2e;--text-dim:#456080}
+body.day::before,body.day::after{display:none}
+body.day .header-left h1{background:linear-gradient(135deg,#0a1826 30%,var(--cyan) 60%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+body.day input[type="date"].date-filter{color-scheme:light}
+body.day .live-badge{background:rgba(0,122,56,0.12);border-color:var(--green);color:var(--green)}
+body.day .live-dot{background:var(--green)}
+body.day .week-badge{background:rgba(0,144,191,0.15);color:var(--cyan2);border-color:rgba(0,144,191,0.35)}
+body.day .neon-div{opacity:0.25}
+body.day ::-webkit-scrollbar-track{background:var(--bg2)}
+body.day ::-webkit-scrollbar-thumb{background:var(--dim)}
+.theme-btn{background:transparent;border:1px solid var(--dim);color:var(--text-dim);font-size:15px;padding:5px 10px;border-radius:5px;cursor:pointer;transition:all 0.2s;line-height:1}.theme-btn:hover{border-color:var(--cyan2);color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -146,6 +161,7 @@ th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color 
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
       <div class="live-badge"><span class="live-dot"></span> LIVE DATA</div>
       <div class="user-badge"><span class="user-dot"></span> <span id="ctUserName">—</span></div>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle day / night mode">☀️</button>
       <button class="logout-btn" onclick="doLogout()">↩ SIGN OUT</button>
       <button class="import-btn" onclick="document.getElementById('fileInput').click()"><span class="ico">📂</span> IMPORT FILE DATA</button>
     </div>
@@ -501,19 +517,23 @@ function updateAll(){
   if(t){setG('g-docs','gt-docs',dOK/t*100);setG('g-cust','gt-cust',cOK/t*100);setG('g-rel','gt-rel',rOK/t*100);setG('g-tms','gt-tms',tOK/t*100);setG('g-hs','gt-hs',hOK/t*100);setG('g-comp','gt-comp',comp/t*100)}
   updateCharts();updateWHTable();updateRecentTable()}
 
+function chartTheme(){
+  const d=document.body.classList.contains('day');
+  return{grd:{color:d?'rgba(140,180,210,0.55)':'rgba(26,48,80,0.4)'},text:d?'#0e1e2e':'#c8dff0',textDim:d?'#456080':'#4a7090',ttBg:d?'#d6e6f2':'#0a1a2e',ttTitle:d?'#006fa3':'#00f5ff',ttBody:d?'#0e1e2e':'#c8dff0'};
+}
 function updateCharts(){
   const wks=[...new Set(filtered.map(r=>r.Week).filter(Boolean))].sort((a,b)=>a-b);
-  const labels=wks.map(w=>'Wk '+w);const grd={color:'rgba(26,48,80,0.4)'};const cOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#c8dff0',font:{size:10}}},tooltip:{backgroundColor:'#0a1a2e',titleColor:'#00f5ff',bodyColor:'#c8dff0'}}};
+  const labels=wks.map(w=>'Wk '+w);const ct=chartTheme();const grd=ct.grd;const cOpt={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:ct.text,font:{size:10}}},tooltip:{backgroundColor:ct.ttBg,titleColor:ct.ttTitle,bodyColor:ct.ttBody}}};
   if(trendC)trendC.destroy();
-  trendC=new Chart($('trendChart').getContext('2d'),{type:'bar',data:{labels,datasets:[{label:'Completed',data:wks.map(w=>filtered.filter(r=>r.Week===w&&r.Status==='Completed').length),backgroundColor:'rgba(0,230,118,0.7)',borderColor:'#00e676',borderWidth:1},{label:'Active',data:wks.map(w=>filtered.filter(r=>r.Week===w&&r.Status==='Active').length),backgroundColor:'rgba(255,107,53,0.6)',borderColor:'#ff6b35',borderWidth:1}]},options:{...cOpt,scales:{x:{stacked:true,grid:grd,ticks:{color:'#4a7090',font:{size:10}}},y:{stacked:true,grid:grd,ticks:{color:'#4a7090',font:{size:10}}}},onClick:(e,els)=>{if(els.length)drillWeek(wks[els[0].index])}}});
+  trendC=new Chart($('trendChart').getContext('2d'),{type:'bar',data:{labels,datasets:[{label:'Completed',data:wks.map(w=>filtered.filter(r=>r.Week===w&&r.Status==='Completed').length),backgroundColor:'rgba(0,230,118,0.7)',borderColor:'#00e676',borderWidth:1},{label:'Active',data:wks.map(w=>filtered.filter(r=>r.Week===w&&r.Status==='Active').length),backgroundColor:'rgba(255,107,53,0.6)',borderColor:'#ff6b35',borderWidth:1}]},options:{...cOpt,scales:{x:{stacked:true,grid:grd,ticks:{color:ct.textDim,font:{size:10}}},y:{stacked:true,grid:grd,ticks:{color:ct.textDim,font:{size:10}}}},onClick:(e,els)=>{if(els.length)drillWeek(wks[els[0].index])}}});
   if(containerC)containerC.destroy();
-  containerC=new Chart($('containerChart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Containers',data:wks.map(w=>filtered.filter(r=>r.Week===w).reduce((s,r)=>s+(r.Containers||0),0)),borderColor:'#00f5ff',backgroundColor:'rgba(0,245,255,0.1)',tension:0.4,fill:true,pointBackgroundColor:'#00f5ff',pointRadius:4}]},options:{...cOpt,scales:{x:{grid:grd,ticks:{color:'#4a7090',font:{size:10}}},y:{grid:grd,ticks:{color:'#4a7090',font:{size:10}}}}}});
+  containerC=new Chart($('containerChart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Containers',data:wks.map(w=>filtered.filter(r=>r.Week===w).reduce((s,r)=>s+(r.Containers||0),0)),borderColor:'#00f5ff',backgroundColor:'rgba(0,245,255,0.1)',tension:0.4,fill:true,pointBackgroundColor:'#00f5ff',pointRadius:4}]},options:{...cOpt,scales:{x:{grid:grd,ticks:{color:ct.textDim,font:{size:10}}},y:{grid:grd,ticks:{color:ct.textDim,font:{size:10}}}}}});
   const colors=['#00f5ff','#00ff88','#b44fff','#ff6b35','#ffd60a','#00b4d8','#ff3860','#00e676','#ffb300','#7c4dff','#00bcd4','#f06292'];
   const whM={};filtered.forEach(r=>{const k=r.Warehouse||'?';whM[k]=(whM[k]||0)+(r.Containers||0)});const whA=Object.entries(whM).sort((a,b)=>b[1]-a[1]);const mx=whA[0]?.[1]||1;
   $('warehouseBars').innerHTML=whA.map(([n,v],i)=>'<div class="hbar-row" onclick="drillWH(\''+E(n)+'\')"><div class="hbar-label">'+n+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+(v/mx*100).toFixed(1)+'%;background:'+colors[i%colors.length]+'"></div></div><div class="hbar-val">'+v+'</div></div>').join('');
   const clM={};filtered.forEach(r=>{const k=r.Client||'?';clM[k]=(clM[k]||0)+(r.Containers||0)});const clA=Object.entries(clM).sort((a,b)=>b[1]-a[1]).slice(0,15);
   if(clientC)clientC.destroy();
-  clientC=new Chart($('clientChart').getContext('2d'),{type:'bar',data:{labels:clA.map(([n])=>n),datasets:[{label:'Containers',data:clA.map(([,v])=>v),backgroundColor:colors.map(c=>c+'bb'),borderColor:colors,borderWidth:1}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0a1a2e',titleColor:'#00f5ff',bodyColor:'#c8dff0'}},scales:{x:{grid:grd,ticks:{color:'#4a7090',font:{size:9}}},y:{grid:grd,ticks:{color:'#c8dff0',font:{size:9}}}}}})
+  clientC=new Chart($('clientChart').getContext('2d'),{type:'bar',data:{labels:clA.map(([n])=>n),datasets:[{label:'Containers',data:clA.map(([,v])=>v),backgroundColor:colors.map(c=>c+'bb'),borderColor:colors,borderWidth:1}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:ct.ttBg,titleColor:ct.ttTitle,bodyColor:ct.ttBody}},scales:{x:{grid:grd,ticks:{color:ct.textDim,font:{size:9}}},y:{grid:grd,ticks:{color:ct.text,font:{size:9}}}}}})
 }
 
 function updateWHTable(){
@@ -695,7 +715,16 @@ function tickClock(){
   if(ed)ed.textContent=fullDate;}
 setInterval(tickClock,1000);tickClock();
 $('fDateFrom').value='2026-01-01';
+// Apply saved theme before first render
+(function(){if(localStorage.getItem('ctTheme')==='day'){document.body.classList.add('day');var b=$('themeBtn');if(b)b.textContent='🌙';}})();
 updateAll();
+
+function toggleTheme(){
+  const day=document.body.classList.toggle('day');
+  localStorage.setItem('ctTheme',day?'day':'night');
+  $('themeBtn').textContent=day?'🌙':'☀️';
+  updateCharts();
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 </script>
 </body>
