@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day Mode Theme Preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#111;padding:30px;display:flex;flex-direction:column;gap:30px}
+h1{color:#fff;text-align:center;font-size:18px;letter-spacing:3px;margin-bottom:10px;text-transform:uppercase}
+
+.theme{border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.theme-label{color:#fff;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:600;padding:0 4px}
+
+.t1{--bg:#fdf6e3;--bg2:#eee8d5;--bg3:#e5dfc8;--text:#073642;--dim:#93a1a1;--cyan:#2aa198;--green:#859900;--orange:#cb4b16;--purple:#6c71c4;--red:#dc322f;--yellow:#b58900}
+.t2{--bg:#e8e0d4;--bg2:#ddd4c4;--bg3:#d0c5b2;--text:#2a1a0e;--dim:#a89880;--cyan:#2d7a6e;--green:#3a6e2a;--orange:#c04820;--purple:#7a3070;--red:#b02030;--yellow:#8a6000}
+.t3{--bg:#d4e8e4;--bg2:#c2dcd6;--bg3:#b0d0c8;--text:#0a1e1c;--dim:#6aaca0;--cyan:#0e7a6e;--green:#1a6e30;--orange:#c04000;--purple:#6020a8;--red:#a81828;--yellow:#7a6000}
+.t4{--bg:#dbd8ee;--bg2:#cbc8e2;--bg3:#bab8d6;--text:#0c0a1e;--dim:#8880b8;--cyan:#1060b0;--green:#1a7038;--orange:#c04000;--purple:#5010a8;--red:#a81028;--yellow:#806800}
+.t5{--bg:#d8d4cc;--bg2:#cac4ba;--bg3:#bcb4a8;--text:#0a0806;--dim:#908880;--cyan:#184880;--green:#1e6030;--orange:#b83c00;--purple:#602090;--red:#a01020;--yellow:#705800}
+
+.preview{background:var(--bg);padding:16px;border-radius:12px}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{font-size:20px;font-weight:800;letter-spacing:2px;color:var(--cyan)}
+.brand span{color:var(--purple)}
+.badge{background:rgba(0,0,0,0.08);border:1px solid var(--dim);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text);display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+
+.filter-bar{background:var(--bg2);border-radius:8px;padding:10px 14px;display:flex;gap:10px;margin-bottom:14px;align-items:center}
+.fsel{background:var(--bg3);border:1px solid var(--dim);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text);min-width:90px}
+
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:var(--bg2);border:1px solid var(--dim);border-radius:8px;padding:10px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.c1::before{background:var(--cyan)}.kpi.c2::before{background:var(--orange)}.kpi.c3::before{background:var(--green)}.kpi.c4::before{background:var(--purple)}.kpi.c5::before{background:var(--green)}.kpi.c6::before{background:var(--red)}
+.kpi-val{font-size:18px;font-weight:800;color:var(--text);margin-top:2px}
+.kpi.c1 .kpi-val{color:var(--cyan)}.kpi.c2 .kpi-val{color:var(--orange)}.kpi.c3 .kpi-val{color:var(--green)}.kpi.c4 .kpi-val{color:var(--purple)}.kpi.c5 .kpi-val{color:var(--green)}.kpi.c6 .kpi-val{color:var(--red)}
+.kpi-lbl{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+
+.gauge-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+.gauge-card{background:var(--bg2);border:1px solid var(--dim);border-radius:8px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ring{position:relative;width:44px;height:44px}
+.ring svg{transform:rotate(-90deg)}
+.ring-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text)}
+.g-lbl{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chart-box{background:var(--bg2);border:1px solid var(--dim);border-radius:8px;padding:12px}
+.chart-title{font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:3px;height:50px}
+.bar{border-radius:3px 3px 0 0;flex:1;min-width:6px}
+.line-sim{height:50px}
+.line-sim svg{width:100%;height:100%}
+</style>
+</head>
+<body>
+<h1>Day Mode Theme Options — Open in browser &amp; pick one</h1>
+
+<!-- helper macro via JS to avoid repeating 5x -->
+<script>
+function makePreview(cls){
+  return `
+  <div class="top-bar">
+    <div class="brand">TPT PLANNING <span>OVERVIEW</span></div>
+    <div style="display:flex;gap:8px">
+      <div class="badge"><div class="dot"></div> LIVE DATA</div>
+      <div class="badge" style="border-color:var(--cyan);color:var(--cyan)">&#x21BB; IMPORT</div>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <span style="font-size:10px;color:var(--dim);letter-spacing:1px">YEAR</span><select class="fsel"><option>All Years</option></select>
+    <span style="font-size:10px;color:var(--dim);letter-spacing:1px">MONTH</span><select class="fsel"><option>All Months</option></select>
+    <span style="font-size:10px;color:var(--dim);letter-spacing:1px">WAREHOUSE</span><select class="fsel"><option>All Warehouses</option></select>
+    <span style="font-size:10px;color:var(--dim);letter-spacing:1px">STATUS</span><select class="fsel"><option>All</option></select>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi c1"><div class="kpi-val">1,422</div><div class="kpi-lbl">Total Shipments</div></div>
+    <div class="kpi c2"><div class="kpi-val">4,547</div><div class="kpi-lbl">Containers</div></div>
+    <div class="kpi c3"><div class="kpi-val">12</div><div class="kpi-lbl">Warehouses</div></div>
+    <div class="kpi c4"><div class="kpi-val">16</div><div class="kpi-lbl">Shipping Lines</div></div>
+    <div class="kpi c5"><div class="kpi-val">91.6%</div><div class="kpi-lbl">Docs Compliance</div></div>
+    <div class="kpi c6"><div class="kpi-val">482</div><div class="kpi-lbl">Active Shipments</div></div>
+  </div>
+  <div class="gauge-row">
+    ${[['green','92%','Docs OK'],['yellow','66%','Customs OK'],['cyan','66%','Release OK'],['purple','63%','TMS OK'],['orange','59%','HS-Code OK'],['cyan','66%','Completed']].map(([c,v,l],i)=>{
+      const da=[103,75,75,71,67,75][i];
+      return `<div class="gauge-card"><div class="ring"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--bg3)" stroke-width="5"/><circle cx="22" cy="22" r="18" fill="none" stroke="var(--${c})" stroke-width="5" stroke-dasharray="${da} 113" stroke-linecap="round"/></svg><div class="ring-lbl">${v}</div></div><div class="g-lbl">${l}</div></div>`;
+    }).join('')}
+  </div>
+  <div class="chart-row">
+    <div class="chart-box"><div class="chart-title">Shipment Volume</div>
+      <div class="bars">
+        ${[80,100,70,85,60].map(h=>`<div class="bar" style="height:${h}%;background:var(--green)"></div>`).join('')}
+        ${[40,55,30].map(h=>`<div class="bar" style="height:${h}%;background:var(--orange)"></div>`).join('')}
+      </div>
+    </div>
+    <div class="chart-box"><div class="chart-title">Containers Per Week</div>
+      <div class="line-sim"><svg viewBox="0 0 200 50" preserveAspectRatio="none">
+        <polyline points="0,40 25,10 50,5 75,20 100,35 125,15 150,25 175,30 200,20" fill="var(--cyan)" fill-opacity="0.15" stroke="none"/>
+        <polyline points="0,40 25,10 50,5 75,20 100,35 125,15 150,25 175,30 200,20" fill="none" stroke="var(--cyan)" stroke-width="2.5"/>
+      </svg></div>
+    </div>
+  </div>`;
+}
+
+const themes = [
+  ['t1','Option 1 — Solarized Warm | Warm cream, zero glare, famous for eye comfort'],
+  ['t2','Option 2 — Warm Linen | Earthy beige, editorial/premium feel'],
+  ['t3','Option 3 — Soft Teal Mist | Cool green-teal, calm analytics feel'],
+  ['t4','Option 4 — Lavender Dusk | Purple-grey, modern SaaS feel'],
+  ['t5','Option 5 — Graphite Sand | Warm grey concrete, premium minimal'],
+];
+
+themes.forEach(([cls, label]) => {
+  const wrap = document.createElement('div');
+  wrap.className = `theme ${cls}`;
+  const lbl = document.createElement('div');
+  lbl.className = 'theme-label';
+  lbl.textContent = label;
+  const prev = document.createElement('div');
+  prev.className = 'preview';
+  prev.innerHTML = makePreview(cls);
+  wrap.appendChild(lbl);
+  wrap.appendChild(prev);
+  document.body.appendChild(wrap);
+});
+</script>
+</body>
+</html>
